@@ -34,8 +34,8 @@
     
     self.calendarView.calendarDelegate = self;
 	
-//	self.calendarView.shouldShowHeaders = YES;
-//	[self.calendarView refresh];
+	self.calendarView.shouldShowHeaders = YES;
+	[self.calendarView refresh];
 	
 //    self.calendarView.dayCellWidth = 65;
 //    self.calendarView.dayCellHeight = 65;

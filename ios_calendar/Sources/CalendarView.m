@@ -1064,6 +1064,8 @@ IB_DESIGNABLE
         [self changeDateEvent];
         [self setNeedsDisplay];
     }
+	
+	[self doubleTap:recognizer];
 }
 
 - (void)doubleTap:(UITapGestureRecognizer *)recognizer
@@ -1071,7 +1073,7 @@ IB_DESIGNABLE
     event = CalendarEventDoubleTap;
     if (type != CalendarViewTypeDay && type > minType) {
         --type;
-        [self fade];
+        //[self fade];
     }
     
     if (type == CalendarViewTypeDay) {
