@@ -31,19 +31,25 @@
     popover = [[UIPopoverController alloc] initWithContentViewController:viewController];
 	popover.popoverContentSize = CGSizeMake(300, 320);
 	popover.delegate = self;
-    
-    self.calendarView.calendarDelegate = self;
 	
+    self.calendarView.calendarDelegate = self;
+
+	NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+	[dateFormatter setDateFormat:@"yyyy-MM-dd"];
+	
+	self.calendarView.minimumDate = [dateFormatter dateFromString:@"2018-02-20"];
+	self.calendarView.maximumDate = [dateFormatter dateFromString:@"2019-06-10"];
+
 	self.calendarView.shouldShowHeaders = YES;
 	[self.calendarView refresh];
 	
-//    self.calendarView.dayCellWidth = 65;
-//    self.calendarView.dayCellHeight = 65;
-//    self.calendarView.monthCellWidth = 160;
-//    self.calendarView.monthCellHeight = 60;
-//    self.calendarView.yearCellWidth = 98;
-//    self.calendarView.yearCellHeight = 60;
-//    [self.calendarView refresh];
+	//self.calendarView.dayCellWidth = 65;
+	//self.calendarView.dayCellHeight = 65;
+	//self.calendarView.monthCellWidth = 160;
+	//self.calendarView.monthCellHeight = 60;
+	//self.calendarView.yearCellWidth = 98;
+	//self.calendarView.yearCellHeight = 60;
+	//[self.calendarView refresh];
 }
 
 - (void)didChangeCalendarDate:(NSDate *)date

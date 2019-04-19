@@ -40,7 +40,8 @@ typedef NS_ENUM(NSInteger, CalendarEvent)
 @property NSInteger value;
 @property NSString  *str;
 @property CGRect    frame;
-@property BOOL isVecation;
+@property BOOL isVacation;
+@property BOOL isEnabled;
 
 @end
 
@@ -72,6 +73,7 @@ typedef NS_ENUM(NSInteger, CalendarEvent)
 @property (nonatomic, strong) UIColor *fontColor;
 @property (nonatomic, strong) UIColor *fontHeaderColor;
 @property (nonatomic, strong) UIColor *fontSelectedColor;
+@property (nonatomic, strong) UIColor *fontDisabledColor;
 @property (nonatomic, strong) UIColor *selectionColor;
 @property (nonatomic, strong) UIColor *todayColor;
 @property (nonatomic, strong) UIColor *bgColor;
@@ -96,8 +98,13 @@ typedef NS_ENUM(NSInteger, CalendarEvent)
 
 @property (nonatomic, strong) NSCalendarIdentifier calendarIdentifier;
 @property (nonatomic, strong) NSLocale *locale;
+
 // Weekday indices start with Sunday = 0
 // to match the indices provided by the NSDateFormatter method shortWeekdaySymbols
 @property (nonatomic) NSInteger preferredWeekStartIndex;
 @property (nonatomic) BOOL useVeryShortWeekdaySymbols;
+
+@property (nonatomic) NSDate *minimumDate;
+@property (nonatomic) NSDate *maximumDate;
+
 @end

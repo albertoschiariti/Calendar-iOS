@@ -203,6 +203,7 @@ IB_DESIGNABLE
     self.fontColor = [UIColor blackColor];
     self.fontHeaderColor = [UIColor redColor];
     self.fontSelectedColor = [UIColor whiteColor];
+	self.fontDisabledColor = [UIColor lightGrayColor];
     self.selectionColor = [UIColor redColor];
     self.todayColor = [UIColor redColor];
     self.bgColor = [UIColor whiteColor];
@@ -233,7 +234,7 @@ IB_DESIGNABLE
     
     UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self
                                                                                             action:@selector(longPress:)];
-//    longPress.numberOfTapsRequired = 1;
+	//longPress.numberOfTapsRequired = 1;
     longPress.numberOfTouchesRequired = 1;
     longPress.minimumPressDuration = 0.2f;
     [self addGestureRecognizer:longPress];
@@ -331,6 +332,7 @@ IB_DESIGNABLE
     } else {
         [self generateDayRects];
     }
+	
     [self generateMonthRects];
     [self generateYearRects];
 }
@@ -413,9 +415,7 @@ IB_DESIGNABLE
 }
 
 #pragma mark - Generating of rects
-
-- (void)generateDayRects
-{
+- (void)generateDayRects{
 	[dayRects removeAllObjects];
     
     NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier:self.calendarIdentifier];
@@ -449,6 +449,12 @@ IB_DESIGNABLE
         dayRect.value = i;
         dayRect.str = [formatter stringForObjectValue:@(i)];
         dayRect.frame = CGRectMake(x, y, w, h);
+		dayRect.isEnabled = YES;
+		
+		NSDate *dateCycled = [self generateDateWithDay:i month:currentMonth year:currentYear];
+
+		[dayRect setIsEnabled:[self checkIfDateIsBetweendMinAndMax:dateCycled]];
+		
         [dayRects addObject:dayRect];
         
 		if (xi >= kCalendarViewDaysInWeek) {
@@ -457,6 +463,39 @@ IB_DESIGNABLE
 			y = yOffSet + yi * (self.dayCellHeight + kCalendarViewDayCellOffset);
 		}
 	}
+}
+
+#pragma mark - Check dates validity
+-(BOOL)checkIfDateIsBetweendMinAndMax:(NSDate*)date{
+	//Check if current iterated date is earlier than minimum date (if setted)
+	if(_minimumDate && _minimumDate != date && [date compare:_minimumDate] == NSOrderedAscending){
+		return NO;
+	}
+	
+	//Check if current iterated date is later than maximum date (if setted)
+	if(_maximumDate && _maximumDate != date && [date compare:_maximumDate] == NSOrderedDescending){
+		return NO;
+	}
+	
+	return YES;
+}
+
+-(BOOL)checkIfDateIsLaterThanMin:(NSDate*)date{
+	//Check if current iterated date is earlier than minimum date (if setted)
+	if(_minimumDate && _minimumDate != date && [date compare:_minimumDate] == NSOrderedAscending){
+		return NO;
+	}
+	
+	return YES;
+}
+
+-(BOOL)checkIfDateIsEarlierThanMax:(NSDate*)date{
+	//Check if current iterated date is later than maximum date (if setted)
+	if(_maximumDate && _maximumDate != date && [date compare:_maximumDate] == NSOrderedDescending){
+		return NO;
+	}
+	
+	return YES;
 }
 
 - (void) generatePersianDayRects{
@@ -479,24 +518,31 @@ IB_DESIGNABLE
     }
     NSInteger weeks = (lastDayOfMonth / 7)+plusRow;
     NSInteger minimumDayOfWeek = 1;
-    if (startDayOfMonth > 0) {
+	
+	if (startDayOfMonth > 0) {
         startDayOfMonth = kCalendarViewDaysInWeek - (startDayOfMonth-1);
-    } else {
+    }
+	else {
         startDayOfMonth = kCalendarViewDaysInWeek;
     }
-    NSMutableArray *daysOfMonth = [[NSMutableArray alloc] init];
-    for (int i = 1; i <= weeks; i++) {
+	
+	NSMutableArray *daysOfMonth = [[NSMutableArray alloc] init];
+	
+	for (int i = 1; i <= weeks; i++) {
         NSMutableArray *arrayOfEachWeek = [[NSMutableArray alloc] init];
-        for (NSInteger j = startDayOfMonth; j >= minimumDayOfWeek ; j--) {
+		
+		for (NSInteger j = startDayOfMonth; j >= minimumDayOfWeek ; j--) {
             if (j > lastDayOfMonth) {
                 break;
             }
             [arrayOfEachWeek addObject:@(j)];
         }
-        [daysOfMonth addObject:arrayOfEachWeek];
+		
+		[daysOfMonth addObject:arrayOfEachWeek];
         startDayOfMonth = (startDayOfMonth + kCalendarViewDaysInWeek);
         minimumDayOfWeek = (startDayOfMonth - kCalendarViewDaysInWeek)+1;
-        if (startDayOfMonth > lastDayOfMonth) {
+		
+		if (startDayOfMonth > lastDayOfMonth) {
             startDayOfMonth = startDayOfMonth - (startDayOfMonth - lastDayOfMonth);
         }
     }
@@ -530,7 +576,7 @@ IB_DESIGNABLE
             dayRect.frame = CGRectMake(x, y, w, h);
             if (j == kCalendarViewDaysInWeek -1 ||
                 (i < daysOfMonth.count -1 && j == week.count -1)) {
-                dayRect.isVecation = YES;
+                dayRect.isVacation = YES;
             }
             [dayRects addObject:dayRect];
             
@@ -542,16 +588,16 @@ IB_DESIGNABLE
     }
 }
 
-- (void)generateMonthRects
-{
+- (void)generateMonthRects{
     [monthRects removeAllObjects];
     
-    NSDateFormatter *formater = [NSDateFormatter new];
-    formater.locale = self.locale;
-    NSArray *monthNames = [formater standaloneMonthSymbols];
+    NSDateFormatter *formatter = [NSDateFormatter new];
+    formatter.locale = self.locale;
+    NSArray *monthNames = [formatter standaloneMonthSymbols];
     NSInteger index = 0;
     CGFloat x, y = [self getEffectiveMonthsYOffset];
     NSInteger xi = 0;
+	
     for (NSString *monthName in monthNames) {
         x = xi * self.monthCellWidth;
         ++xi;
@@ -561,6 +607,13 @@ IB_DESIGNABLE
         monthRect.value = index;
         monthRect.str = monthName;
         monthRect.frame = CGRectMake(x, y, self.monthCellWidth, self.monthCellHeight);
+		monthRect.isEnabled = YES;
+		
+		NSDate *dateCycledMin = [self generateDateWithDay:[self getLastDayOfMonth:index year:currentYear] month:index year:currentYear];
+		NSDate *dateCycledMax = [self generateDateWithDay:1 month:index year:currentYear];
+
+		[monthRect setIsEnabled:[self checkIfDateIsLaterThanMin:dateCycledMin] && [self checkIfDateIsEarlierThanMax:dateCycledMax]];
+
         [monthRects addObject:monthRect];
         
         if (xi >= kCalendarViewMonthInLine) {
@@ -570,8 +623,7 @@ IB_DESIGNABLE
     }
 }
 
-- (void)generateYearRects
-{
+- (void)generateYearRects{
     [yearRects removeAllObjects];
     
     NSMutableArray *years = [[NSMutableArray alloc] init];
@@ -592,7 +644,14 @@ IB_DESIGNABLE
         yearRect.value = [obj integerValue];
         yearRect.str = [formatter stringForObjectValue:@([obj integerValue])];
         yearRect.frame = CGRectMake(x, y, self.yearCellWidth, self.yearCellHeight);
-        [yearRects addObject:yearRect];
+		yearRect.isEnabled = YES;
+		
+		NSDate *dateCycledMin = [self generateDateWithDay:[self getLastDayOfMonth:12 year:currentYear] month:12 year:yearRect.value];
+		NSDate *dateCycledMax = [self generateDateWithDay:1 month:1 year:yearRect.value];
+		
+		[yearRect setIsEnabled:[self checkIfDateIsLaterThanMin:dateCycledMin] && [self checkIfDateIsEarlierThanMax:dateCycledMax]];
+
+		[yearRects addObject:yearRect];
         
         if (xi >= kCalendarViewYearsInLine) {
             xi = 0;
@@ -602,7 +661,6 @@ IB_DESIGNABLE
 }
 
 # pragma mark - Layout Calculations 
-
 - (CGFloat)getEffectiveWeekDaysYOffset
 {
     if (self.shouldShowHeaders) {
@@ -647,30 +705,12 @@ IB_DESIGNABLE
 	CGContextSetFillColorWithColor(context, self.bgColor.CGColor);
 	CGContextFillRect(context, rect);
     
-	NSDictionary *attributesBlack = [self generateAttributes:self.fontName
-												withFontSize:self.dayFontSize
-												   withColor:self.fontColor
-											   withAlignment:NSTextAlignmentFromCTTextAlignment(kCTCenterTextAlignment)];
-    
-    NSDictionary *attributesRed = [self generateAttributes:self.fontName
-                                                withFontSize:self.dayFontSize
-                                                   withColor:[UIColor redColor]
-                                               withAlignment:NSTextAlignmentFromCTTextAlignment(kCTCenterTextAlignment)];
-	
-	NSDictionary *attributesWhite = [self generateAttributes:self.fontName
-												withFontSize:self.dayFontSize
-												   withColor:self.fontSelectedColor
-											   withAlignment:NSTextAlignmentFromCTTextAlignment(kCTCenterTextAlignment)];
-    
-	NSDictionary *attributesRedRight = [self generateAttributes:self.fontName
-												   withFontSize:self.headerFontSize
-													  withColor:self.fontHeaderColor
-												  withAlignment:NSTextAlignmentFromCTTextAlignment(kCTRightTextAlignment)];
-	
-	NSDictionary *attributesRedLeft = [self generateAttributes:self.fontName
-												  withFontSize:self.headerFontSize
-													 withColor:self.fontHeaderColor
-												 withAlignment:NSTextAlignmentFromCTTextAlignment(kCTLeftTextAlignment)];
+	NSDictionary *attributesBlack = [self generateAttributes:self.fontName withFontSize:self.dayFontSize withColor:self.fontColor withAlignment:NSTextAlignmentFromCTTextAlignment(kCTCenterTextAlignment)];
+    NSDictionary *attributesRed = [self generateAttributes:self.fontName withFontSize:self.dayFontSize withColor:[UIColor redColor] withAlignment:NSTextAlignmentFromCTTextAlignment(kCTCenterTextAlignment)];
+	NSDictionary *attributesWhite = [self generateAttributes:self.fontName withFontSize:self.dayFontSize withColor:self.fontSelectedColor withAlignment:NSTextAlignmentFromCTTextAlignment(kCTCenterTextAlignment)];
+	NSDictionary *attributesDisabledDay = [self generateAttributes:self.fontName withFontSize:self.dayFontSize withColor:self.fontDisabledColor withAlignment:NSTextAlignmentFromCTTextAlignment(kCTCenterTextAlignment)];
+	NSDictionary *attributesRedRight = [self generateAttributes:self.fontName withFontSize:self.headerFontSize withColor:self.fontHeaderColor withAlignment:NSTextAlignmentFromCTTextAlignment(kCTRightTextAlignment)];
+	NSDictionary *attributesRedLeft = [self generateAttributes:self.fontName  withFontSize:self.headerFontSize withColor:self.fontHeaderColor withAlignment:NSTextAlignmentFromCTTextAlignment(kCTLeftTextAlignment)];
     
 	CTFontRef cellFont = CTFontCreateWithName((__bridge CFStringRef)self.fontName, self.dayFontSize, NULL);
 	CGRect cellFontBoundingBox = CTFontGetBoundingBox(cellFont);
@@ -758,22 +798,19 @@ IB_DESIGNABLE
                  }
                  
                  attrs = attributesWhite;
-             } else if (type == CalendarViewTypeDay &&
-                       rect.value == todayDay &&
-                       currentMonth == todayMonth &&
-                       currentYear == todayYear &&
-                       self.shouldMarkToday) {
+             } else if (type == CalendarViewTypeDay && rect.value == todayDay && currentMonth == todayMonth && currentYear == todayYear && self.shouldMarkToday) {
                 [self drawCircle:rect.frame toContext:&context withColor:self.todayColor];
                 attrs = attributesWhite;
              } else if (type == CalendarViewTypeMonth) {
-                 attrs = attributesBlack;
+				 attrs = rect.isEnabled ? attributesBlack : attributesDisabledDay;
              } else {
-                attrs = attributesBlack;
+				 attrs = rect.isEnabled ? attributesBlack : attributesDisabledDay;
             }
             
-            if (rect.isVecation && attrs != attributesWhite) {
+            if (rect.isVacation && attrs != attributesWhite) {
                 attrs = attributesRed;
             }
+			
             [rect.str drawUsingRect:rectText withAttributes:attrs];
         }
     }
@@ -1017,8 +1054,7 @@ IB_DESIGNABLE
     }
 }
 
-- (void)tap:(UITapGestureRecognizer *)recognizer
-{
+- (void)tap:(UITapGestureRecognizer *)recognizer{
     event = CalendarEventTap;
     CGPoint touchPoint = [recognizer locationInView:self];
     
@@ -1039,20 +1075,40 @@ IB_DESIGNABLE
     }
     
     BOOL hasEvent = NO;
-    switch (type) {
+	
+	switch (type) {
         case CalendarViewTypeDay:
         {
             hasEvent = [self checkPoint:touchPoint inArray:dayRects andSetValue:&currentDay];
+			/*CalendarViewRect *rect = [self checkPoint:touchPoint inArray:dayRects];
+			
+			if(rect.isEnabled == FALSE){
+				return;
+			}*/
         }
         break;
+			
         case CalendarViewTypeMonth:
         {
             hasEvent = [self checkPoint:touchPoint inArray:monthRects andSetValue:&currentMonth];
+			/*CalendarViewRect *rect = [self checkPoint:touchPoint inArray:monthRects];
+			if(rect.isEnabled == FALSE){
+				return;
+			}*/
+			
+			[self doubleTap:recognizer];
         }
         break;
+			
         case CalendarViewTypeYear:
         {
             hasEvent = [self checkPoint:touchPoint inArray:yearRects andSetValue:&currentYear];
+			/*CalendarViewRect *rect = [self checkPoint:touchPoint inArray:yearRects];
+			if(rect.isEnabled == FALSE){
+				return;
+			}*/
+			[self generateMonthRects];
+			[self doubleTap:recognizer];
         }
         break;
             
@@ -1065,7 +1121,6 @@ IB_DESIGNABLE
         [self setNeedsDisplay];
     }
 	
-	[self doubleTap:recognizer];
 }
 
 - (void)doubleTap:(UITapGestureRecognizer *)recognizer
@@ -1162,6 +1217,7 @@ IB_DESIGNABLE
     }
     
     startDate = [self generateDateWithDay:startRangeDay month:startRangeMonth year:startRangeYear];
+	
     if (endRangeYear > 0) {
         endDate = [self generateDateWithDay:endRangeDay month:endRangeMonth year:endRangeYear];
     }
@@ -1173,10 +1229,12 @@ IB_DESIGNABLE
 
 - (BOOL)checkPoint:(CGPoint)point inArray:(NSMutableArray *)array andSetValue:(NSInteger *)value{
     CalendarViewRect *rect = [self checkPoint:point inArray:array];
-    if (!rect) {
+	
+	if (!rect || rect.isEnabled == NO) {
         return NO;
     }
-    *value = rect.value;
+	
+	*value = rect.value;
     return YES;
 }
 
