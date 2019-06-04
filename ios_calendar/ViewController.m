@@ -38,7 +38,8 @@
 	[dateFormatter setDateFormat:@"yyyy-MM-dd"];
 	
 	self.calendarView.minimumDate = [dateFormatter dateFromString:@"2018-02-20"];
-	self.calendarView.maximumDate = [dateFormatter dateFromString:@"2019-06-10"];
+	[self.calendarView setMinimumDate:[NSDate date]];
+	//self.calendarView.maximumDate = [dateFormatter dateFromString:@"2019-06-10"];
 
 	self.calendarView.shouldShowHeaders = YES;
 	[self.calendarView refresh];

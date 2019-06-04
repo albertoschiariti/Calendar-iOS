@@ -326,6 +326,13 @@ IB_DESIGNABLE
 {
     NSDate *now = [NSDate date];
     [self setCurrentDate:now];
+	
+	if (self.minimumDate && [self.currentDate compare:self.minimumDate] == NSOrderedAscending) {
+		[self setCurrentDate:self.minimumDate];
+	}
+	else if (self.maximumDate && [self.maximumDate compare:self.currentDate] == NSOrderedAscending) {
+		[self setCurrentDate:self.maximumDate];
+	}
     
     if (self.calendarIdentifier == NSCalendarIdentifierPersian) {
         [self generatePersianDayRects];
